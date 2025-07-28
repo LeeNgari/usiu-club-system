@@ -21,7 +21,7 @@ const CommentSection = ({ eventId }) => {
       const data = await getComments(eventId);
       setComments(data);
     } catch (err) {
-      // Keep existing comments if fetch fails, but show an error
+    
       setMessage({ type: 'error', text: 'Could not refresh comments.' });
     } finally {
       setLoading(false);
@@ -41,7 +41,7 @@ const CommentSection = ({ eventId }) => {
     try {
       await addComment(eventId, { body: newComment });
       setNewComment('');
-      await fetchComments(); // Refetch comments to show the new one
+      await fetchComments(); 
     } catch (err) {
       setMessage({ type: 'error', text: 'Error adding comment.' });
     } finally {
@@ -83,10 +83,9 @@ const CommentSection = ({ eventId }) => {
 
     try {
       await likeComment(commentId);
-      // Optionally refetch to sync with server ground truth
-      // await fetchComments(); 
+    
     } catch (err) {
-      setComments(originalComments); // Revert on error
+      setComments(originalComments); 
       setMessage({ type: 'error', text: 'Error updating like.' });
     }
   };
@@ -122,8 +121,13 @@ const CommentSection = ({ eventId }) => {
           <div className="mt-6 space-y-4">
             {comments.map((comment) => (
               <Card key={comment.id}>
-                <CardHeader className="flex flex-row justify-between items-start space-y-0 p-4">
-                  <div>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4">
+                  <div className="flex items-center">
+                    <img
+                      src={comment.user.profile_photo_url}
+                      alt={comment.user.name}
+                      className="w-10 h-10 rounded-full mr-3 object-cover"
+                    />
                     <CardTitle className="text-base">{comment.user.name}</CardTitle>
                   </div>
                   {user && user.id === comment.user_id && (

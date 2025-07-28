@@ -1,11 +1,5 @@
 import api from './api';
 
-export const getUserRegistrations = async (userId) => {
-  // There is no direct endpoint for this in the provided documentation.
-  // This is a placeholder implementation.
-  // A real implementation would require a backend endpoint like /api/users/{id}/registrations
-  return [];
-};
 
 export const getUsers = async () => {
   const response = await api.get('/users');

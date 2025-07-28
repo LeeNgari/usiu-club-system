@@ -25,14 +25,13 @@ const DashboardLayout = ({ children }) => {
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
+      const role = user?.role;
       await logout();
-      // After successful logout, redirect based on the user's *previous* role
-      // (since sessionStorage is cleared in logout())
-      const role = user?.role; // Get role before it's cleared
-      navigate(getDashboardPath(role));
+
+      navigate("/login");
     } catch (error) {
       console.error('Logout failed:', error);
-      // Optionally, show an error message to the user
+
     } finally {
       setIsLoggingOut(false);
     }

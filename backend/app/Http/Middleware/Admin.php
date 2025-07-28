@@ -23,9 +23,9 @@ class Admin
 
         $user = $request->user();
 
-      
+
         // Check if user has admin role
-        if ($request->user()->role !== 'admin') {
+        if ($request->user()->role !== 'admin' && $request->user()->role !== 'superadmin') {
             return response()->json(['message' => 'Unauthorized. Admin access required.'], 403);
         }
 

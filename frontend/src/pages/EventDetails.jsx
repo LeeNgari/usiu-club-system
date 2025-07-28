@@ -90,7 +90,7 @@ const EventDetails = () => {
           <img
             src={event.cover_image}
             alt={event.title}
-            className="w-full h-64 rounded-lg object-cover"
+            className="h-full rounded-lg object-cover"
           />
 
           <Separator className="my-4" />
