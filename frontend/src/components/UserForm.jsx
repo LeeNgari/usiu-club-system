@@ -121,7 +121,6 @@ const UserForm = ({ user, onSubmit, onCancel }) => {
               <SelectValue placeholder="Select club" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Select Club</SelectItem>
               {clubs.map(club => (
                 <SelectItem key={club.id} value={club.id}>
                   {club.name}

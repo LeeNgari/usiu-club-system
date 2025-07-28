@@ -27,6 +27,7 @@ class EventController extends Controller
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'club_id' => 'required|exists:clubs,id',
+            'max_seats' => 'required|integer|min:1',
         ]);
 
         $user = Auth::user();
@@ -35,7 +36,7 @@ class EventController extends Controller
             return response()->json(['message' => 'Unauthorized to create events for this club.'], 403);
         }
 
-        $event = Event::create($request->all());
+        $event = Event::create($request->all() + ['seats_available' => $request->max_seats]);
 
         return response()->json($event, 201);
     }
@@ -55,6 +56,7 @@ class EventController extends Controller
             'start_time' => 'sometimes|required|date',
             'end_time' => 'sometimes|required|date|after:start_time',
             'club_id' => 'sometimes|required|exists:clubs,id',
+            'max_seats' => 'sometimes|required|integer|min:1',
         ]);
 
         $user = Auth::user();
@@ -85,8 +87,8 @@ class EventController extends Controller
     {
         $user = Auth::user();
 
-        if ($event->registrations_count >= 50) {
-            return response()->json(['message' => 'Event registration limit reached.'], 400);
+        if ($event->seats_available <= 0) {
+            return response()->json(['message' => 'Event registration is full.'], 400);
         }
 
         $registration = EventRegistration::firstOrCreate(
@@ -94,7 +96,7 @@ class EventController extends Controller
         );
 
         if ($registration->wasRecentlyCreated) {
-            $event->increment('registrations_count');
+            $event->decrement('seats_available');
             Mail::to($user->email)->send(new EventRegistrationConfirmation($event, $user));
         }
 
@@ -110,10 +112,17 @@ class EventController extends Controller
                                     ->delete();
 
         if ($deleted) {
-            $event->decrement('registrations_count');
+            $event->increment('seats_available');
             return response()->json(['message' => 'Registration cancelled successfully.']);
         }
 
         return response()->json(['message' => 'No registration found for this event.'], 404);
+    }
+
+    public function registeredEvents()
+    {
+        $user = Auth::user();
+        $registrations = EventRegistration::where('user_id', $user->id)->with('event')->get();
+        return response()->json($registrations);
     }
 }

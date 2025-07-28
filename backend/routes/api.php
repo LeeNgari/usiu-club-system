@@ -34,4 +34,5 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('events/{event}/cancel-registration', [EventController::class, 'cancelRegistration']);
     Route::apiResource('events.comments', CommentController::class);
     Route::post('comments/{comment}/like', [CommentController::class, 'like']);
+    Route::get('user/registered-events', [EventController::class, 'registeredEvents']);
 });

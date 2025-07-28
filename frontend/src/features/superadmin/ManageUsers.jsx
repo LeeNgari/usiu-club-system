@@ -88,7 +88,7 @@ const ManageUsers = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold tracking-tight">Manage Users</h2>
-        <Button onClick={handleCreate} className="bg-usiuBlue hover:bg-blue-700">
+        <Button onClick={handleCreate} className="bg-usiu-blue hover:bg-blue-700">
           Create User
         </Button>
       </div>

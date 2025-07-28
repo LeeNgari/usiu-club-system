@@ -97,7 +97,7 @@ const ManageAllEvents = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold tracking-tight">Manage All Events</h2>
-        <Button onClick={handleCreate} className="bg-usiuBlue hover:bg-blue-700">
+        <Button onClick={handleCreate} className="bg-usiu-blue hover:bg-blue-700">
           Create Event
         </Button>
       </div>

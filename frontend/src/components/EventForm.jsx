@@ -19,6 +19,7 @@ const EventForm = ({ event, onSubmit, onCancel, isSuperAdmin = false, adminClubI
   const [eventDate, setEventDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [maxSeats, setMaxSeats] = useState('');
   const [clubId, setClubId] = useState('');
   const [clubs, setClubs] = useState([]);
   const [loadingClubs, setLoadingClubs] = useState(true);
@@ -51,7 +52,8 @@ const EventForm = ({ event, onSubmit, onCancel, isSuperAdmin = false, adminClubI
       setEventDate(event.event_date);
       setStartTime(event.start_time);
       setEndTime(event.end_time);
-      setClubId(event.club_id || '');
+      setMaxSeats(event.max_seats || '');
+      setClubId(String(event.club_id || ''));
     } else if (adminClubId) {
       setClubId(adminClubId);
     }
@@ -59,7 +61,9 @@ const EventForm = ({ event, onSubmit, onCancel, isSuperAdmin = false, adminClubI
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ title, description, cover_image: coverImage, event_date: eventDate, start_time: startTime, end_time: endTime, club_id: clubId });
+    const fullStartTime = `${eventDate} ${startTime}:00`;
+    const fullEndTime = `${eventDate} ${endTime}:00`;
+    onSubmit({ title, description, cover_image: coverImage, event_date: eventDate, start_time: fullStartTime, end_time: fullEndTime, max_seats: parseInt(maxSeats), club_id: clubId });
   };
 
   if (loadingClubs) {
@@ -139,6 +143,18 @@ const EventForm = ({ event, onSubmit, onCancel, isSuperAdmin = false, adminClubI
             required
           />
         </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="maxSeats">Max Seats</Label>
+          <Input
+            id="maxSeats"
+            type="number"
+            value={maxSeats}
+            onChange={(e) => setMaxSeats(e.target.value)}
+            placeholder="e.g., 100"
+            required
+          />
+        </div>
       </div>
 
       {(isSuperAdmin || adminClubId) && (
@@ -154,9 +170,8 @@ const EventForm = ({ event, onSubmit, onCancel, isSuperAdmin = false, adminClubI
               <SelectValue placeholder="Select Club" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Select Club</SelectItem>
               {clubs.map(club => (
-                <SelectItem key={club.id} value={club.id}>
+                <SelectItem key={club.id} value={String(club.id)}>
                   {club.name}
                 </SelectItem>
               ))}

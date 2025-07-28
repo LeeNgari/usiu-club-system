@@ -73,7 +73,16 @@ const ManageEvents = () => {
       }
       setShowForm(false);
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error saving event.' });
+      console.error('Error saving event:', err.response?.data || err);
+      const errorMessage = err.response?.data?.message || 'Error saving event.';
+      if (err.response?.data?.errors) {
+        // If there are specific validation errors, display them
+        const errorMessages = Object.values(err.response.data.errors).flat();
+        setMessage({ type: 'error', text: errorMessages.join(' ') });
+      } else {
+        setMessage({ type: 'error', text: errorMessage });
+      }
+      setMessage({ type: 'error', text: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -97,7 +106,7 @@ const ManageEvents = () => {
     <div>
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Manage Events</h2>
-        <button onClick={handleCreate} className="px-4 py-2 text-white bg-usiuBlue rounded-md hover:bg-blue-700">Create Event</button>
+        <button onClick={handleCreate} className="px-4 py-2 text-white bg-usiu-blue rounded-md hover:bg-blue-700">Create Event</button>
       </div>
       {showForm && (
         <div className="mt-6">

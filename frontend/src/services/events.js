@@ -20,6 +20,12 @@ export const cancelRegistration = async (id) => {
   return response.data;
 };
 
+export const getRegisteredEvents = async () => {
+  const response = await api.get('/user/registered-events');
+  console.log(response.data);
+  return response.data;
+};
+
 export const createEvent = async (event) => {
   const response = await api.post('/events', event);
   return response.data;

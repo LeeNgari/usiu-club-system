@@ -1,87 +1,98 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getComments, addComment, deleteComment, likeComment } from '../services/comments';
 import LoadingSpinner from './LoadingSpinner';
 import AlertMessage from './AlertMessage';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Heart, Trash2, Loader2 } from "lucide-react"
-
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Heart, Trash2, Loader2 } from "lucide-react";
 
 const CommentSection = ({ eventId }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState(null);
   const user = JSON.parse(sessionStorage.getItem('user'));
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      setLoading(true);
-      setMessage(null);
-      try {
-        const data = await getComments(eventId);
-        setComments(data);
-      } catch (err) {
-        setMessage({ type: 'error', text: 'Error fetching comments' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchComments();
+  const fetchComments = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getComments(eventId);
+      setComments(data);
+    } catch (err) {
+      // Keep existing comments if fetch fails, but show an error
+      setMessage({ type: 'error', text: 'Could not refresh comments.' });
+    } finally {
+      setLoading(false);
+    }
   }, [eventId]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    if (!newComment.trim()) return;
+
+    setIsSubmitting(true);
     setMessage(null);
     try {
-      const newCommentData = await addComment(eventId, { body: newComment });
-      setComments([newCommentData, ...comments]);
+      await addComment(eventId, { body: newComment });
       setNewComment('');
-      setMessage({ type: 'success', text: 'Comment added successfully!' });
+      await fetchComments(); // Refetch comments to show the new one
     } catch (err) {
       setMessage({ type: 'error', text: 'Error adding comment.' });
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteComment = async (commentId) => {
-    setLoading(true);
-    setMessage(null);
+    // Optimistically remove the comment for better UX
+    const originalComments = comments;
+    setComments(comments.filter((comment) => comment.id !== commentId));
     try {
       await deleteComment(eventId, commentId);
-      setComments(comments.filter((comment) => comment.id !== commentId));
-      setMessage({ type: 'success', text: 'Comment deleted successfully!' });
+      // No refetch needed if optimistic update is sufficient
     } catch (err) {
+      // Revert if the delete fails
+      setComments(originalComments);
       setMessage({ type: 'error', text: 'Error deleting comment.' });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleLikeComment = async (commentId) => {
-    setLoading(true);
-    setMessage(null);
+    // Optimistic update for likes
+    const originalComments = [...comments];
+    const updatedComments = comments.map(c => {
+      if (c.id === commentId) {
+        const userLike = c.likes.find(like => like.user_id === user.id);
+        if (userLike) {
+          // Unlike
+          return { ...c, likes: c.likes.filter(like => like.user_id !== user.id) };
+        } else {
+          // Like
+          return { ...c, likes: [...c.likes, { user_id: user.id }] };
+        }
+      }
+      return c;
+    });
+    setComments(updatedComments);
+
     try {
       await likeComment(commentId);
-      setMessage({ type: 'success', text: 'Comment liked/unliked successfully!' });
-      // You might want to update the comment's like count here
+      // Optionally refetch to sync with server ground truth
+      // await fetchComments(); 
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error liking/unliking comment.' });
-    } finally {
-      setLoading(false);
+      setComments(originalComments); // Revert on error
+      setMessage({ type: 'error', text: 'Error updating like.' });
     }
   };
 
-  if (loading) {
+  if (loading && comments.length === 0) {
     return <LoadingSpinner />;
-  }
-
-  if (message) {
-    return <AlertMessage message={message.text} type={message.type} />;
   }
 
   return (
@@ -91,15 +102,17 @@ const CommentSection = ({ eventId }) => {
           <CardTitle className="text-2xl">Comments</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAddComment} className="space-y-4">
+          {message && <AlertMessage message={message.text} type={message.type} />}
+          <form onSubmit={handleAddComment} className="space-y-4 my-4">
             <Textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Add a comment..."
               className="min-h-[100px]"
+              disabled={isSubmitting}
             />
-            <Button type="submit" disabled={loading}>
-              {loading ? (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
               Add Comment
@@ -118,13 +131,8 @@ const CommentSection = ({ eventId }) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteComment(comment.id)}
-                      disabled={loading}
                     >
-                      {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      )}
+                      <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                   )}
                 </CardHeader>
@@ -135,9 +143,8 @@ const CommentSection = ({ eventId }) => {
                     size="sm"
                     className="mt-2 text-destructive"
                     onClick={() => handleLikeComment(comment.id)}
-                    disabled={loading}
                   >
-                    <Heart className="mr-2 h-4 w-4" />
+                    <Heart className={`mr-2 h-4 w-4 ${comment.likes.some(l => l.user_id === user.id) ? 'fill-current' : ''}`} />
                     {comment.likes.length}
                   </Button>
                 </CardContent>
@@ -147,7 +154,6 @@ const CommentSection = ({ eventId }) => {
         </CardContent>
       </Card>
     </div>
-
   );
 };
 

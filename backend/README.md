@@ -411,6 +411,8 @@ These endpoints require `superadmin` or `admin` role.
             "end_time": "2025-08-10T12:00:00.000000Z",
             "club_id": 1,
             "registrations_count": 5,
+            "max_seats": 100,
+            "seats_available": 95,
             "created_at": "2023-01-01T00:00:00.000000Z",
             "updated_at": "2023-01-01T00:00:00.000000Z"
         },
@@ -433,7 +435,8 @@ These endpoints require `superadmin` or `admin` role.
         "event_date": "2025-10-20",
         "start_time": "2025-10-20 09:00:00",
         "end_time": "2025-10-20 17:00:00",
-        "club_id": 1
+        "club_id": 1,
+        "max_seats": 100
     }
     ```
 
@@ -450,6 +453,8 @@ These endpoints require `superadmin` or `admin` role.
         "end_time": "2025-10-20T17:00:00.000000Z",
         "club_id": 1,
         "registrations_count": 0,
+        "max_seats": 100,
+        "seats_available": 100,
         "created_at": "2023-01-01T00:00:00.000000Z",
         "updated_at": "2023-01-01T00:00:00.000000Z"
     }
@@ -473,6 +478,8 @@ These endpoints require `superadmin` or `admin` role.
         "end_time": "2025-08-10T12:00:00.000000Z",
         "club_id": 1,
         "registrations_count": 5,
+        "max_seats": 100,
+        "seats_available": 95,
         "created_at": "2023-01-01T00:00:00.000000Z",
         "updated_at": "2023-01-01T00:00:00.000000Z"
     }
@@ -488,7 +495,8 @@ These endpoints require `superadmin` or `admin` role.
     ```json
     {
         "description": "Updated description for the AI Workshop.",
-        "cover_image": "http://example.com/updated_image.jpg"
+        "cover_image": "http://example.com/updated_image.jpg",
+        "max_seats": 150
     }
     ```
 
@@ -505,6 +513,8 @@ These endpoints require `superadmin` or `admin` role.
         "end_time": "2025-08-10T12:00:00:00.000000Z",
         "club_id": 1,
         "registrations_count": 5,
+        "max_seats": 150,
+        "seats_available": 145,
         "created_at": "2023-01-01T00:00:00.000000Z",
         "updated_at": "2023-01-01T00:00:00.000000Z"
     }
@@ -547,7 +557,7 @@ This endpoint requires `user` role.
 
     ```json
     {
-        "message": "Event registration limit reached."
+        "message": "Event registration is full."
     }
     ```
 
@@ -573,6 +583,40 @@ This endpoint requires `user` role.
     {
         "message": "No registration found for this event."
     }
+    ```
+
+#### Get Registered Events
+
+-   **URL:** `/api/user/registered-events`
+-   **Method:** `GET`
+-   **Authentication:** Sanctum Token
+-   **Response (Success - 200 OK):**
+
+    ```json
+    [
+        {
+            "id": 1,
+            "user_id": 1,
+            "event_id": 1,
+            "created_at": "2023-01-01T00:00:00.000000Z",
+            "updated_at": "2023-01-01T00:00:00.000000Z",
+            "event": {
+                "id": 1,
+                "title": "AI Workshop",
+                "description": "An introductory workshop on Artificial Intelligence.",
+                "cover_image": "http://example.com/image.jpg",
+                "event_date": "2025-08-10",
+                "start_time": "2025-08-10T10:00:00.000000Z",
+                "end_time": "2025-08-10T12:00:00.000000Z",
+                "club_id": 1,
+                "registrations_count": 5,
+                "max_seats": 100,
+                "seats_available": 95,
+                "created_at": "2023-01-01T00:00:00.000000Z",
+                "updated_at": "2023-01-01T00:00:00.000000Z"
+            }
+        }
+    ]
     ```
 
 ### Comment Management (User)
